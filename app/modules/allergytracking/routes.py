@@ -1,38 +1,16 @@
-from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.modules.allergytracking.models import AllergyTracking
 from app.modules.allergytracking.schema import AllergyTrackingCreate
-from app.modules.user import User
-from app.database.database import SessionLocal
 
-router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.post("/")
-def create_allergy(allergy_data: AllergyTrackingCreate, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_id == allergy_data.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+def create_allergy_tracking_db(db: Session, allergy_data: AllergyTrackingCreate):
     allergy = AllergyTracking(**allergy_data.dict())
     db.add(allergy)
     db.commit()
     db.refresh(allergy)
-    return {"message": "Allergy added", "allergy_id": allergy.allergy_id}
+    return allergy
 
-@router.get("/{user_id}")
-def get_allergies(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    allergies = db.query(AllergyTracking).filter(AllergyTracking.user_id == user_id).all()
-    if not allergies:
-        raise HTTPException(status_code=404, detail="No allergies found for this user")
-    
-    return {"user_id": user_id, "allergies": allergies}
+def get_allergies_by_user_id_db(db: Session, user_id: int):
+    return db.query(AllergyTracking).filter(AllergyTracking.user_id == user_id).all()
+
+def get_allergy_by_id_db(db: Session, allergy_id: int):
+    return db.query(AllergyTracking).filter(AllergyTracking.id == allergy_id).first()

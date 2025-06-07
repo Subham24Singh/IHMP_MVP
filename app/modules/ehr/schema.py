@@ -1,11 +1,12 @@
 from pydantic import BaseModel
-from sqlalchemy.orm import relationship
+from typing import Optional, Any
 
-class EHRSchema(BaseModel):
-    patient_id: int
-    diagnosis: str
-    treatment: str
-    notes: str
+class EHRCreate(BaseModel):
+    user_id: int
+    data: Any  # Replace with specific fields if you know the EHR structure
 
-ehr = relationship("EHR", back_populates="user")
+class EHRResponse(EHRCreate):
+    id: int
 
+    class Config:
+        orm_mode = True

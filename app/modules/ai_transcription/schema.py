@@ -5,6 +5,7 @@ from typing import Dict, Any
 class AITranscriptionsSchema(BaseModel):
     user_id: int
     transcription_data: Dict[str, Any]
+    appointment_id: int
     created_at: datetime = datetime.utcnow()
 
     class Config:

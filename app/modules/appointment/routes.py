@@ -1,50 +1,44 @@
-from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from app.modules.user import User
 from app.modules.appointment.model import Appointment
-from app.modules.appointment.schema import AppointmentCreate  # if needed
+from app.modules.appointment.schema import AppointmentCreate
 
-from app.database.database import SessionLocal
-
-router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.post("/")
-def create_appointment(appointment_data: AppointmentCreate, db: Session = Depends(get_db)):
-    patient = db.query(User).filter(User.user_id == appointment_data.patient_id, User.role == "Patient").first()
-    doctor = db.query(User).filter(User.user_id == appointment_data.doctor_id, User.role == "Doctor").first()
-
-    if not patient:
-        raise HTTPException(status_code=404, detail="Patient not found")
-    if not doctor:
-        raise HTTPException(status_code=404, detail="Doctor not found")
-
+def create_appointment_db(db: Session, appointment_data: AppointmentCreate):
     appointment = Appointment(
-        patient_id=patient.user_id,
-        doctor_id=doctor.user_id,
+        patient_id=appointment_data.patient_id,
+        doctor_id=appointment_data.doctor_id,
         appointment_date=appointment_data.appointment_date,
         status="Scheduled"
     )
     db.add(appointment)
     db.commit()
     db.refresh(appointment)
-    return {"message": "Appointment created", "appointment_id": appointment.appointment_id}
+    return appointment
 
-@router.get("/{doctor_id}")
-def get_appointments(doctor_id: int, db: Session = Depends(get_db)):
-    doctor = db.query(User).filter(User.user_id == doctor_id, User.role == "Doctor").first()
-    if not doctor:
-        raise HTTPException(status_code=404, detail="Doctor not found")
+def get_appointments_by_doctor_and_patient_db(db: Session, doctor_id: int, patient_id: int):
+    return db.query(Appointment).filter(
+        Appointment.doctor_id == doctor_id,
+        Appointment.patient_id == patient_id
+    ).all()
 
-    appointments = db.query(Appointment).filter(Appointment.doctor_id == doctor_id).all()
+def get_appointments_by_doctor_db(db: Session, doctor_id: int):
+    return db.query(Appointment).filter(
+        Appointment.doctor_id == doctor_id
+    ).all()
 
-    if not appointments:
-        return {"message": "No appointments found for this doctor"}
+def get_appointments_by_patient_db(db: Session, patient_id: int):
+    return db.query(Appointment).filter(
+        Appointment.patient_id == patient_id
+    ).all()
 
-    return {"doctor_id": doctor_id, "appointments": appointments}
+def get_appointment_by_id_db(db: Session, appointment_id: int):
+    return db.query(Appointment).filter(
+        Appointment.appointment_id == appointment_id
+    ).first()
+
+def delete_appointment_db(db: Session, appointment_id: int):
+    appointment = db.query(Appointment).filter(Appointment.appointment_id == appointment_id).first()
+    if not appointment:
+        return False
+    db.delete(appointment)
+    db.commit()
+    return True

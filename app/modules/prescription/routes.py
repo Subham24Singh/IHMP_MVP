@@ -1,42 +1,37 @@
-from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from app.modules.user import  User
 from app.modules.prescription.models import Prescription
-from app.modules.prescription.schema import PrescriptionSchema
-from app.database.database import SessionLocal
-from app.database.database import get_db
+from app.modules.prescription.schema import PrescriptionCreate
 
-router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@router.post("/")
-def add_prescription(prescription: PrescriptionSchema, db: Session = Depends(get_db)):
-    # Check if patient exists
-    patient = db.query(User).filter(User.user_id == prescription.patient_id, User.role == "Patient").first()
-    if not patient:
-        raise HTTPException(status_code=404, detail="Patient not found")
-
-    # Check if doctor exists
-    doctor = db.query(User).filter(User.user_id == prescription.doctor_id, User.role == "Doctor").first()
-    if not doctor:
-        raise HTTPException(status_code=404, detail="Doctor not found")
-
-    new_prescription = Prescription(**prescription.dict())
-    db.add(new_prescription)
+def create_prescription_db(db: Session, prescription_data: PrescriptionCreate):
+    prescription = Prescription(**prescription_data.dict())
+    db.add(prescription)
     db.commit()
-    db.refresh(new_prescription)
-    return {"message": "Prescription added", "prescription_id": new_prescription.prescription_id}
+    db.refresh(prescription)
+    return prescription
 
-@router.get("/{patient_id}")
-def get_prescriptions(patient_id: int, db: Session = Depends(get_db)):
-    prescriptions = db.query(Prescription).filter(Prescription.patient_id == patient_id).all()
-    if not prescriptions:
-        raise HTTPException(status_code=404, detail="No prescriptions found")
-    return {"prescriptions": prescriptions}
+def get_prescriptions_by_patient_id_db(db: Session, patient_id: int):
+    return db.query(Prescription).filter(Prescription.patient_id == patient_id).all()
+
+def get_prescriptions_by_doctor_id_db(db: Session, doctor_id: int):
+    return db.query(Prescription).filter(Prescription.doctor_id == doctor_id).all()
+
+def get_prescription_by_id_db(db: Session, prescription_id: int):
+    return db.query(Prescription).filter(Prescription.prescription_id == prescription_id).first()
+
+def update_prescription_db(db: Session, prescription_id: int, prescription_data: PrescriptionCreate):
+    prescription = db.query(Prescription).filter(Prescription.prescription_id == prescription_id).first()
+    if not prescription:
+        return None
+    for field, value in prescription_data.dict(exclude_unset=True).items():
+        setattr(prescription, field, value)
+    db.commit()
+    db.refresh(prescription)
+    return prescription
+
+def delete_prescription_db(db: Session, prescription_id: int):
+    prescription = db.query(Prescription).filter(Prescription.prescription_id == prescription_id).first()
+    if not prescription:
+        return False
+    db.delete(prescription)
+    db.commit()
+    return True

@@ -8,5 +8,6 @@ class AITranscriptions(Base):
      
      id = Column(Integer, primary_key=True, index=True, autoincrement=True)
      user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-     transcription_data = Column(JSON, nullable=False)  # JSONB for AI-generated transcriptions
+     transcription_data = Column(JSON, nullable=False) 
+     appointment_id = Column(Integer, ForeignKey("appointments.appointment_id", ondelete="CASCADE"), nullable=False) # JSONB for AI-generated transcriptions
      created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

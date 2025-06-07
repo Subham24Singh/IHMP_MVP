@@ -1,38 +1,34 @@
-from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.modules.reminder.models import Reminder
-from app.modules.user import User
-from app.modules.reminder.schema import ReminderSchema
-from app.database.database import SessionLocal
+from app.modules.reminder.schema import ReminderCreate
 
-router = APIRouter()
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.post("/")
-def add_reminder(reminder: ReminderSchema, db: Session = Depends(get_db)):
-    # Check if user exists
-    user = db.query(User).filter(User.user_id == reminder.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    new_reminder = Reminder(
-        user_id=reminder.user_id,
-        reminder_text=reminder.reminder_text,
-        reminder_time=reminder.reminder_time
-    )
-    db.add(new_reminder)
+def create_reminder_db(db: Session, reminder_data: ReminderCreate):
+    reminder = Reminder(**reminder_data.dict())
+    db.add(reminder)
     db.commit()
-    db.refresh(new_reminder)
-    return {"message": "Reminder added", "reminder_id": new_reminder.reminder_id}
+    db.refresh(reminder)
+    return reminder
 
-@router.get("/{user_id}")
-def get_reminders(user_id: int, db: Session = Depends(get_db)):
-    reminders = db.query(Reminder).filter(Reminder.user_id == user_id).all()
-    if not reminders:
-        raise HTTPException(status_code=404, detail="No reminders found")
-    return {"reminders": reminders}
+def get_reminders_by_user_id_db(db: Session, user_id: int):
+    return db.query(Reminder).filter(Reminder.user_id == user_id).all()
+
+def get_reminder_by_id_db(db: Session, reminder_id: int):
+    return db.query(Reminder).filter(Reminder.id == reminder_id).first()
+
+def update_reminder_db(db: Session, reminder_id: int, reminder_data: ReminderCreate):
+    reminder = db.query(Reminder).filter(Reminder.id == reminder_id).first()
+    if not reminder:
+        return None
+    for field, value in reminder_data.dict(exclude_unset=True).items():
+        setattr(reminder, field, value)
+    db.commit()
+    db.refresh(reminder)
+    return reminder
+
+def delete_reminder_db(db: Session, reminder_id: int):
+    reminder = db.query(Reminder).filter(Reminder.id == reminder_id).first()
+    if not reminder:
+        return False
+    db.delete(reminder)
+    db.commit()
+    return True

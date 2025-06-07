@@ -1,29 +1,35 @@
-from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.modules.ai_transcription.model import AITranscriptions
 from app.modules.ai_transcription.schema import AITranscriptionsSchema
-from app.database.database import SessionLocal
+from typing import List
 
-router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.post("/")
-def create_ai_transcription(transcription: AITranscriptionsSchema, db: Session = Depends(get_db)):
-    new_transcription = AITranscriptions(**transcription.dict())
+def create_ai_transcription_db(db: Session, transcription_data: AITranscriptionsSchema) -> AITranscriptions:
+    new_transcription = AITranscriptions(**transcription_data.dict())
     db.add(new_transcription)
     db.commit()
     db.refresh(new_transcription)
-    return {"message": "AI Transcription created", "transcription_id": new_transcription.id}
+    return new_transcription
 
-@router.get("/{patient_id}")
-def get_ai_transcriptions(patient_id: int, db: Session = Depends(get_db)):
-    transcriptions = db.query(AITranscriptions).filter(AITranscriptions.user_id == patient_id).all()
-    if not transcriptions:
-        raise HTTPException(status_code=404, detail="No AI transcriptions found")
-    return {"ai_transcriptions": transcriptions}
+def get_ai_transcriptions_by_user_id_db(db: Session, user_id: int) -> List[AITranscriptions]:
+    return db.query(AITranscriptions).filter(AITranscriptions.user_id == user_id).all()
+
+def get_ai_transcription_by_id_db(db: Session, transcription_id: int) -> AITranscriptions:
+    return db.query(AITranscriptions).filter(AITranscriptions.id == transcription_id).first()
+
+def update_ai_transcription_db(db: Session, transcription_id: int, transcription_data: AITranscriptionsSchema):
+    transcription = db.query(AITranscriptions).filter(AITranscriptions.id == transcription_id).first()
+    if not transcription:
+        return None
+    for field, value in transcription_data.dict(exclude_unset=True).items():
+        setattr(transcription, field, value)
+    db.commit()
+    db.refresh(transcription)
+    return transcription
+
+def delete_ai_transcription_db(db: Session, transcription_id: int):
+    transcription = db.query(AITranscriptions).filter(AITranscriptions.id == transcription_id).first()
+    if not transcription:
+        return False
+    db.delete(transcription)
+    db.commit()
+    return True

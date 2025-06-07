@@ -1,4 +1,4 @@
-from .routes import router as user_router
+from .routes import user_router
 from .model import User
 from .schema import UserSchema
 

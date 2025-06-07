@@ -1,31 +1,34 @@
-from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from app.modules.followup.model import FollowupRecommendations
-from app.modules.followup.schema import FollowupRecommendationsSchema
-from app.database.database import SessionLocal
+from app.modules.followup.model import FollowUp
+from app.modules.followup.schema import FollowUpCreate
 
-router = APIRouter()
-
-router = APIRouter()
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@router.post("/")
-def add_followup_recommendation(recommendation: FollowupRecommendationsSchema, db: Session = Depends(get_db)):
-    new_recommendation = FollowupRecommendations(**recommendation.dict())
-    db.add(new_recommendation)
+def create_followup_db(db: Session, followup_data: FollowUpCreate):
+    followup = FollowUp(**followup_data.dict())
+    db.add(followup)
     db.commit()
-    db.refresh(new_recommendation)
-    return {"message": "Follow-up recommendation added", "recommendation_id": new_recommendation.id}
+    db.refresh(followup)
+    return followup
 
-@router.get("/{patient_id}")
-def get_followup_recommendations(patient_id: int, db: Session = Depends(get_db)):
-    recommendations = db.query(FollowupRecommendations).filter(FollowupRecommendations.user_id == patient_id).all()
-    if not recommendations:
-        raise HTTPException(status_code=404, detail="No follow-up recommendations found")
-    return {"recommendations": recommendations}
+def get_followups_by_user_id_db(db: Session, user_id: int):
+    return db.query(FollowUp).filter(FollowUp.user_id == user_id).all()
+
+def get_followup_by_id_db(db: Session, followup_id: int):
+    return db.query(FollowUp).filter(FollowUp.id == followup_id).first()
+
+def update_followup_db(db: Session, followup_id: int, followup_data: FollowUpCreate):
+    followup = db.query(FollowUp).filter(FollowUp.id == followup_id).first()
+    if not followup:
+        return None
+    for field, value in followup_data.dict(exclude_unset=True).items():
+        setattr(followup, field, value)
+    db.commit()
+    db.refresh(followup)
+    return followup
+
+def delete_followup_db(db: Session, followup_id: int):
+    followup = db.query(FollowUp).filter(FollowUp.id == followup_id).first()
+    if not followup:
+        return False
+    db.delete(followup)
+    db.commit()
+    return True

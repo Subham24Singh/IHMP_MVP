@@ -1,30 +1,36 @@
-from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.modules.labresults.model import LabResults
-from app.modules.labresults.schema import LabResultSchema
-from app.database.database import SessionLocal
+from app.modules.labresults.schema import LabResultCreate
 
-router = APIRouter()
-
-router = APIRouter()
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.post("/")
-def add_lab_result(lab_result: LabResultSchema, db: Session = Depends(get_db)):
-    new_result = LabResults(**lab_result.dict())
-    db.add(new_result)
+def create_lab_result_db(db: Session, lab_result_data: LabResultCreate):
+    lab_result = LabResults(**lab_result_data.dict())
+    db.add(lab_result)
     db.commit()
-    db.refresh(new_result)
-    return {"message": "Lab result added", "result_id": new_result.result_id}
+    db.refresh(lab_result)
+    return lab_result
 
-@router.get("/{user_id}")
-def get_lab_results(user_id: int, db: Session = Depends(get_db)):
-    results = db.query(LabResults).filter(LabResults.user_id == user_id).all()
-    if not results:
-        raise HTTPException(status_code=404, detail="No lab results found")
-    return {"results": results}
+def get_lab_results_by_user_id_db(db: Session, user_id: int):
+    return db.query(LabResults).filter(LabResults.user_id == user_id).all()
+
+def get_lab_result_by_id_db(db: Session, lab_result_id: int):
+    return db.query(LabResults).filter(LabResults.id == lab_result_id).first()
+
+
+
+def update_lab_result_db(db: Session, lab_result_id: int, lab_result_data: LabResultCreate):
+    lab_result = db.query(LabResults).filter(LabResults.id == lab_result_id).first()
+    if not lab_result:
+        return None
+    for field, value in lab_result_data.dict(exclude_unset=True).items():
+        setattr(lab_result, field, value)
+    db.commit()
+    db.refresh(lab_result)
+    return lab_result
+
+def delete_lab_result_db(db: Session, lab_result_id: int):
+    lab_result = db.query(LabResults).filter(LabResults.id == lab_result_id).first()
+    if not lab_result:
+        return False
+    db.delete(lab_result)
+    db.commit()
+    return True

@@ -1,47 +1,56 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.database.database import engine, Base
 from app.config import settings
 
-# Import modules
+# Import modularized routers for admin, doctor, and patient
+from app.modules.admin.routes import routers as admin_routers
+from app.modules.doctor.routes import routers as doctor_routers
+from app.modules.patient.routes import routers as patient_routers
+from app.modules.user import user_router
 
-from app.modules import (
-    user,
-    appointment,
-    allergytracking,
-    labresults,
-    ai_transcription,
-    medical_history,
-    prescription,
-    reminder,
-    followup,
-    healthmonitoring,
-    ehrsummary,
-    patient_uploaded_docs,
-    ehr,
-    diagnosis
-)
-
-# DB init
-Base.metadata.create_all(bind=engine)
-
+# Initialize FastAPI app
 app = FastAPI(title="IHMP API", version="1.0")
 
-# Use correct router names
-app.include_router(user.user_router, prefix="/users", tags=["Users"])
-app.include_router(ehr.ehr_router, prefix="/ehr", tags=["EHR"])
-app.include_router(appointment.appointments_router, prefix="/appointments", tags=["Appointments"])
-app.include_router(allergytracking.allergy_tracking_router, prefix="/allergy_tracking", tags=["Allergy Tracking"])
-app.include_router(labresults.lab_results, prefix="/lab_results", tags=["Lab Results"])
-app.include_router(medical_history.medical_history, prefix="/medical_history", tags=["Medical History"])
-app.include_router(prescription.prescriptions, prefix="/prescriptions", tags=["Prescriptions"])
-app.include_router(reminder.reminder, prefix="/reminders", tags=["Reminders"])
-app.include_router(followup.follow_up_router, prefix="/followup", tags=["Follow-Up"])
-app.include_router(healthmonitoring.health_monitoring_log, prefix="/health_monitoring", tags=["Health Monitoring"])
-app.include_router(ehrsummary.ehr_summary_router, prefix="/ehrsummary", tags=["EHR Summary"])
-app.include_router(patient_uploaded_docs.patient_uploaded_doc, prefix="/document", tags=["Patient Document"])
-app.include_router(diagnosis.diagnostic_insight_router, prefix="/diagnosis", tags=["Diagnostic Insights"])
-app.include_router(ai_transcription.ai_transcription_router, prefix="/transcriptions", tags=["AI Transcriptions"])
+# Initialize DB tables
+Base.metadata.create_all(bind=engine)
+
+# CORS configuration
+origins = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    max_age=3600,
+)
+
+# Trusted hosts (for production, specify your domain)
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]
+)
+
+# Register role-based routers
+for router in admin_routers:
+    app.include_router(router, prefix="/admin")
+for router in doctor_routers:
+    app.include_router(router, prefix="/doctor")
+for router in patient_routers:
+    app.include_router(router, prefix="/patient")
+
+# Register user router (public endpoints)
+app.include_router(user_router, prefix="/users", tags=["Users"])
 
 @app.get("/")
 def root():

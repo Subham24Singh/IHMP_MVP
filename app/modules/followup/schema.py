@@ -1,11 +1,14 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any
 
-class FollowupRecommendationsSchema(BaseModel):
+class FollowUpCreate(BaseModel):
     user_id: int
-    recommendations: Dict[str, Any]
-    recommended_at: datetime = datetime.utcnow()
+    recommendations: Any  # Use more specific type if you know the JSON structure
+    recommended_at: datetime
+
+class FollowUpResponse(FollowUpCreate):
+    id: int
 
     class Config:
         orm_mode = True

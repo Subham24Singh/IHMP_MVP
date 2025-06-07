@@ -1,50 +1,34 @@
-from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from app.modules.ehrsummary import EHRSummary
 from app.modules.ehr.models import EHR
-from app.modules.ehrsummary import EHRSummarySchema
-from app.modules.ehr.schema import EHRSchema
+from app.modules.ehr.schema import EHRCreate 
 
-
-from app.database.database import SessionLocal
-
-router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.post("/")
-def create_ehr(ehr: EHRSchema, db: Session = Depends(get_db)):
-    new_ehr = EHR(**ehr.dict())
-    db.add(new_ehr)
+def create_ehr_db(db: Session, ehr_data: EHRCreate):
+    ehr = EHR(**ehr_data.dict())
+    db.add(ehr)
     db.commit()
-    db.refresh(new_ehr)
-    return {"message": "EHR added", "record_id": new_ehr.record_id}
+    db.refresh(ehr)
+    return ehr
 
-@router.get("/{patient_id}")
-def get_ehrs(patient_id: int, db: Session = Depends(get_db)):
-    records = db.query(EHR).filter(EHR.patient_id == patient_id).all()
-    if not records:
-        raise HTTPException(status_code=404, detail="No EHR found")
-    return {"records": records}
+def get_ehrs_by_user_id_db(db: Session, user_id: int):
+    return db.query(EHR).filter(EHR.user_id == user_id).all()
 
-# ✅ Store EHR Summary
-@router.post("/summaries/")
-def store_ehr_summary(summary: EHRSummarySchema, db: Session = Depends(get_db)):
-    new_summary = EHRSummary(**summary.dict())
-    db.add(new_summary)
+def get_ehr_by_id_db(db: Session, ehr_id: int):
+    return db.query(EHR).filter(EHR.id == ehr_id).first()
+
+def update_ehr_db(db: Session, ehr_id: int, ehr_data: EHRCreate):
+    ehr = db.query(EHR).filter(EHR.id == ehr_id).first()
+    if not ehr:
+        return None
+    for field, value in ehr_data.dict(exclude_unset=True).items():
+        setattr(ehr, field, value)
     db.commit()
-    db.refresh(new_summary)
-    return {"message": "EHR Summary saved", "summary_id": new_summary.id}
+    db.refresh(ehr)
+    return ehr
 
-# ✅ Fetch EHR Summary
-@router.get("/summaries/{patient_id}")
-def get_ehr_summaries(patient_id: int, db: Session = Depends(get_db)):
-    summaries = db.query(EHRSummary).filter(EHRSummary.user_id == patient_id).all()
-    if not summaries:
-        raise HTTPException(status_code=404, detail="No EHR summaries found")
-    return {"ehr_summaries": summaries}
+def delete_ehr_db(db: Session, ehr_id: int):
+    ehr = db.query(EHR).filter(EHR.id == ehr_id).first()
+    if not ehr:
+        return False
+    db.delete(ehr)
+    db.commit()
+    return True
