@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
-from app.database.database import Base
+from app.database.base import Base
 
 class MedicalHistory(Base):
     __tablename__ = 'medical_history'

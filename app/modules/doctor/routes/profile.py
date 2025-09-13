@@ -1,29 +1,50 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.database import get_db
+from app.modules.doctor.models import Doctor
+from app.modules.doctor.routes.schema import DoctorProfileResponse
 from app.modules.doctor.deps import get_current_doctor
-from app.modules.Profile.schema import UserProfileResponse, UserProfileUpdate
-from app.modules.Profile.routes import get_user_profile_db, update_user_profile_db
+from pydantic import BaseModel
 
-doctor_profile_router = APIRouter(prefix="/profile", tags=["Profile"])
+router = APIRouter(prefix="/api/doctors", tags=["Doctors"])
 
-@doctor_profile_router.get("/", response_model=UserProfileResponse)
-def get_profile(
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_doctor)
+class DoctorProfileUpdate(BaseModel):
+    full_name: str
+    specialty: str
+    bio: str = ""
+    education: str = ""
+    experience: str = ""
+    clinic_address: str
+    photo_url: str = ""
+    available_days: list[str] = []
+    time_slots: str = ""
+
+@router.get("/{doctor_id}/profile", response_model=DoctorProfileResponse)
+def get_doctor_profile(
+    doctor_id: int,
+    db: Session = Depends(get_db)
 ):
-    user = get_user_profile_db(db, current_user.user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+    """Get a doctor's profile details."""
+    doctor = db.query(Doctor).filter(Doctor.id == doctor_id).first()
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    return doctor
 
-@doctor_profile_router.put("/", response_model=UserProfileResponse)
+@router.post("/update-profile")
 def update_profile(
-    profile_data: UserProfileUpdate,
+    profile: DoctorProfileUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_doctor)
+    current_doctor=Depends(get_current_doctor)
 ):
-    user = update_user_profile_db(db, current_user.user_id, profile_data)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+    doctor = db.query(Doctor).filter(Doctor.id == current_doctor.user_id).first()
+    if not doctor:
+        doctor = Doctor(id=current_doctor.user_id)
+        db.add(doctor)
+    
+    # Update doctor's profile
+    for field, value in profile.dict().items():
+        setattr(doctor, field, value)
+    
+    db.commit()
+    db.refresh(doctor)
+    return {"success": True, "doctor": DoctorProfileResponse.from_orm(doctor)}

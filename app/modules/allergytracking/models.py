@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from app.database.database import Base
+from app.database.base import Base
 
 class AllergyTracking(Base):
     __tablename__ = 'allergy_tracking'

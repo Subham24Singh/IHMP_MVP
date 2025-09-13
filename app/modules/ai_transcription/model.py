@@ -1,6 +1,6 @@
 from sqlalchemy import JSON, Column, DateTime, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from app.database.database import Base
+from app.database.base import Base
 from datetime import datetime
 
 class AITranscriptions(Base):

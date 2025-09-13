@@ -1,14 +1,25 @@
-from typing import Optional
-from pydantic import BaseModel
-# from app.modules.enum.models import RoleEnum  # No longer needed for schema
 
-class UserSchema(BaseModel):
+
+from typing import Optional
+from pydantic import BaseModel, EmailStr
+
+class UserBaseSchema(BaseModel):
     username: str
-    email: str
-    password: str
+    email: EmailStr
     phone_number: Optional[str] = None
-    role: str  # Accept as string
-    registration_number: Optional[str] = None
+
+class PatientRegisterInput(UserBaseSchema):
+    password: str
+    confirm_password: str
+
+class DoctorRegisterInput(UserBaseSchema):
+    password: str
+    confirm_password: str
+    registration_number: str
+
+class UserOutputSchema(UserBaseSchema):
+    user_id: int
+    role: str
 
     class Config:
         from_attributes = True

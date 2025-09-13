@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy import Column, Date, Integer, String, DateTime, Enum, ForeignKey, Text
-from app.database.database import Base
+from app.database.base import Base
 
 class EHR(Base):
      __tablename__ = 'ehr'

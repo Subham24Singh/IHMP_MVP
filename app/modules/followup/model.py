@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
-from app.database.database import Base
+from app.database.base import Base
 
 class FollowUp(Base):
     __tablename__ = 'followup_recommendations'

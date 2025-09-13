@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
-from app.database.database import Base
+from app.database.base import Base
 
 class PatientUploadedDocs(Base):
     __tablename__ = 'patient_uploaded_docs'

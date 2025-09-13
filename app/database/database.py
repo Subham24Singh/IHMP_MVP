@@ -5,7 +5,7 @@ from app.config import settings
 import sys
 
 # Define the Base class
-Base = declarative_base()
+from .base import Base
 
 # Database URL from settings
 DATABASE_URL = settings.DATABASE_URL

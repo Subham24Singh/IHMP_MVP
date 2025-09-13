@@ -1,0 +1,310 @@
+.appointmentsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3.5rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #18181b;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.3rem;
+  text-shadow: 0 1px 2px rgba(30,41,59,0.11);
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 1.15rem;
+  margin-bottom: 0.2rem;
+}
+
+.actionBtn {
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.7rem 2.1rem;
+  border-radius: 0.85rem;
+  box-shadow: 0 4px 16px 0 rgba(37,99,235,0.08);
+  transition: background 0.18s, box-shadow 0.18s;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+.actionBtn:hover {
+  background: #1d4ed8;
+  box-shadow: 0 6px 20px 0 rgba(37,99,235,0.13);
+}
+
+.sectionCard {
+  border-radius: 1.25rem;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(120deg,rgba(255,255,255,0.88) 80%,rgba(232,240,255,0.56) 100%);
+  box-shadow: 0 8px 40px 0 rgba(30,41,59,0.09);
+  margin-bottom: 2.8rem;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #18181b;
+  padding: 2.2rem 2.5rem 1.1rem 2.5rem;
+  background: transparent;
+}
+
+.cardsList {
+  padding: 0 2.5rem 2.5rem 2.5rem;
+}
+
+.appointmentCard {
+  display: flex;
+  align-items: center;
+  gap: 1.7rem;
+  border-radius: 1rem;
+  border: 1px solid #f1f5f9;
+  background: #fff;
+  box-shadow: 0 2px 12px 0 rgba(30,41,59,0.07);
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.2rem;
+  transition: box-shadow 0.18s, border 0.18s, opacity 0.4s cubic-bezier(.4,2,.3,1);
+  animation: fade-in-up 0.7s cubic-bezier(.4,2,.3,1);
+}
+.appointmentCard:hover {
+  box-shadow: 0 6px 32px 0 rgba(30,41,59,0.13);
+  border: 1px solid #dbeafe;
+}
+.appointmentCard[data-fading="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Modal overlay and card */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30,41,59,0.24);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fade-in-modal 0.22s cubic-bezier(.4,2,.3,1);
+}
+.modalCard {
+  background: #fff;
+  border-radius: 1.1rem;
+  box-shadow: 0 10px 48px 0 rgba(30,41,59,0.13);
+  padding: 2.2rem 2.6rem 2rem 2.6rem;
+  min-width: 340px;
+  max-width: 96vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fade-in-modal-card 0.28s cubic-bezier(.4,2,.3,1);
+}
+.modalTitle {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #18181b;
+  margin-bottom: 0.7rem;
+  text-align: center;
+}
+.modalText {
+  color: #64748b;
+  font-size: 1.09rem;
+  margin-bottom: 1.7rem;
+  text-align: center;
+}
+.modalActions {
+  display: flex;
+  gap: 0.7rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.dateTimeInput {
+  width: 100%;
+  font-size: 1.09rem;
+  padding: 0.56rem 1.1rem;
+  border-radius: 0.7rem;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #18181b;
+  margin-bottom: 1.2rem;
+  margin-top: 0.4rem;
+  outline: none;
+  transition: border 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px 0 rgba(37,99,235,0.03);
+}
+.dateTimeInput:focus {
+  border: 1.5px solid #2563eb;
+  box-shadow: 0 0 0 2px #2563eb22;
+  background: #fff;
+}
+.dateTimeInput:hover {
+  border: 1.5px solid #60a5fa;
+}
+
+
+@keyframes fade-in-modal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-in-modal-card {
+  from { transform: scale(0.95) translateY(18px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+
+.avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: #dbeafe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2563eb;
+  box-shadow: 0 2px 8px 0 rgba(37,99,235,0.08);
+}
+.avatarGray {
+  background: #e5e7eb;
+  color: #a3a3a3;
+}
+
+.details {
+  flex: 1;
+}
+.doctorName {
+  font-weight: 700;
+  color: #18181b;
+  font-size: 1.13rem;
+  margin-bottom: 0.1rem;
+}
+.specialization {
+  color: #64748b;
+  font-size: 1rem;
+  margin-bottom: 0.18rem;
+}
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  margin-top: 0.35rem;
+  font-size: 0.97rem;
+  color: #64748b;
+}
+.statusChip {
+  background: #f1f5f9;
+  color: #64748b;
+  border-radius: 0.7rem;
+  font-size: 0.97rem;
+  padding: 0.18rem 0.8rem;
+  font-weight: 600;
+  margin-right: 0.7rem;
+}
+.statusChip.inPerson {
+  background: #18181b;
+  color: #fff;
+}
+.statusChip.virtual {
+  background: #2563eb;
+  color: #fff;
+}
+.statusChip.completed {
+  background: #e0f2fe;
+  color: #2563eb;
+}
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.actionBtnSecondary {
+  background: #f1f5f9;
+  color: #18181b;
+  font-weight: 600;
+  border-radius: 0.7rem;
+  font-size: 1rem;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.actionBtnSecondary:hover {
+  background: #e0e7ef;
+}
+.actionBtnDanger {
+  background: #fff1f2;
+  color: #be123c;
+  font-weight: 600;
+  border-radius: 0.7rem;
+  font-size: 1rem;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  transition: background 0.15s;
+  cursor: pointer;
+  border: 1px solid #ffe4e6;
+}
+.actionBtnDanger:hover {
+  background: #ffe4e6;
+}
+.actionBtnSuccess {
+  background: #22c55e;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 0.7rem;
+  font-size: 1rem;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.actionBtnSuccess:hover {
+  background: #16a34a;
+}
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(32px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in-down {
+  0% { opacity: 0; transform: translateY(-32px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.noAppointments {
+  color: #a3a3a3;
+  padding: 2.5rem 0;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  animation: fade-in 0.7s cubic-bezier(.4,2,.3,1);
+}
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.findDoctorsBtn {
+  background: #fff;
+  color: #2563eb;
+  border: 1.5px solid #2563eb;
+  font-weight: 700;
+  font-size: 1.07rem;
+  padding: 0.7rem 1.65rem;
+  border-radius: 0.8rem;
+  margin-right: 1.1rem;
+  transition: background 0.14s, color 0.14s;
+  cursor: pointer;
+}
+.findDoctorsBtn:hover {
+  background: #2563eb;
+  color: #fff;
+}
